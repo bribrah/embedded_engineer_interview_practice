@@ -45,3 +45,76 @@ private:
 - (Optional) A brief explanation of your design choices, especially regarding how you addressed efficiency and fragmentation.
 
 This exercise tests your ability to manage low-level resources efficiently, a critical skill in embedded systems development. It also offers an opportunity to demonstrate your understanding of memory management principles, data structures, and possibly concurrency, depending on how advanced you make your solution.
+
+## TEST CASES
+
+### Test Case 1: Basic Allocation and Deallocation
+
+**Objective**: Verify that the allocator can allocate and deallocate memory blocks without errors.
+
+- **Steps**:
+    1. Allocate a block of memory using your allocator.
+    2. Verify the returned pointer is not `nullptr`.
+    3. Deallocate the block.
+    4. Attempt to allocate another block and ensure it succeeds.
+
+**Expected Outcome**: Both allocations should succeed, and the allocator should not return `nullptr` for any allocation that doesn't exceed the pool size.
+
+### Test Case 2: Fill the Entire Pool
+
+**Objective**: Test the allocator's behavior when the entire memory pool is filled.
+
+- **Steps**:
+    1. Continuously allocate blocks until the allocator returns `nullptr`, indicating the pool is exhausted.
+    2. Count the number of successful allocations and compare it with the expected number based on the pool size and block size.
+
+**Expected Outcome**: The number of successful allocations should match the total size of the pool divided by the block size.
+
+### Test Case 3: Memory Pool Exhaustion and Release
+
+**Objective**: Ensure the allocator correctly handles pool exhaustion and subsequent release of memory.
+
+- **Steps**:
+    1. Allocate blocks until the pool is exhausted.
+    2. Deallocate at least one block.
+    3. Allocate a new block.
+    4. Verify that the new allocation is successful after deallocation.
+
+**Expected Outcome**: After deallocation, new allocations should succeed even if the pool was previously exhausted.
+
+### Test Case 4: Random Allocation and Deallocation
+
+**Objective**: Simulate a more realistic usage pattern with random allocations and deallocations.
+
+- **Steps**:
+    1. Create a loop that randomly decides whether to allocate or deallocate a block, keeping track of allocated blocks.
+    2. Ensure that deallocation requests only target previously allocated blocks.
+    3. Run the loop a significant number of times (e.g., thousands of iterations).
+
+**Expected Outcome**: The allocator should not crash, and all allocations and deallocations should be handled correctly without leaking memory.
+
+### Test Case 5: Deallocating Non-Allocated Memory
+
+**Objective**: Verify that the allocator behaves correctly when asked to deallocate a pointer that was not allocated by it.
+
+- **Steps**:
+    1. Pass a random pointer (not returned by the allocator) to the deallocation function.
+    2. Optionally, pass a `nullptr` to the deallocation function.
+
+**Expected Outcome**: The allocator should safely ignore the deallocation request without crashing or corrupting the memory pool. Implementing and checking for such safety features may require additional logic in your allocator.
+
+### Test Case 6: Thread Safety (if applicable)
+
+**Objective**: If your allocator is intended to be thread-safe, verify that it can correctly handle concurrent allocations and deallocations.
+
+- **Steps**:
+    1. Create multiple threads, where each thread performs a mix of allocations and deallocations.
+    2. Join all threads and then check the integrity of the allocator's internal state (if possible).
+
+**Expected Outcome**: The allocator should correctly manage concurrent operations without data races, deadlocks, or corruption of the memory pool.
+
+### Writing the Tests
+
+You can implement these tests as functions in your test suite. For tests that require randomness (like Test Case 4), you might use the `<random>` header to generate random numbers. For thread safety tests (Test Case 6), use `<thread>` and potentially `<mutex>` to manage concurrency.
+
+Remember, thorough testing is crucial, especially for low-level components like memory allocators, as bugs can be subtle and have far-reaching effects. After implementing these tests, consider using tools like sanitizers (e.g., AddressSanitizer, ThreadSanitizer) to detect memory errors and race conditions automatically.
