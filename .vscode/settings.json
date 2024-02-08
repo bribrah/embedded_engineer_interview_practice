@@ -38,7 +38,16 @@
         "xstddef": "cpp",
         "xstring": "cpp",
         "xtr1common": "cpp",
-        "xutility": "cpp"
+        "xutility": "cpp",
+        "chrono": "cpp",
+        "stack": "cpp",
+        "vector": "cpp",
+        "mutex": "cpp",
+        "algorithm": "cpp",
+        "deque": "cpp",
+        "random": "cpp",
+        "ratio": "cpp",
+        "thread": "cpp"
     },
     "cmake.configureOnOpen": true
 }

@@ -1,0 +1,5 @@
+{
+    "board": "arduino:avr:uno",
+    "sketch": "practice_5_UART_stm32_to_arduino\\arduino_UART\\arduino_UART.ino",
+    "port": "COM11"
+}
