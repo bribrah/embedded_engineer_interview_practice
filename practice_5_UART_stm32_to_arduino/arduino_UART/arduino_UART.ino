@@ -1,11 +1,11 @@
 #include <SoftwareSerial.h>
+#include "CustomUart.h"
 
-SoftwareSerial mySerial(10, 11); // RX, TX
+CustomUart mySerial(9600); // RX, TX
 
 void setup()
 {
   Serial.begin(9600); // Initialize serial communication at 9600 baud rate
-  mySerial.begin(9600);
   Serial.println("Debugging started");
 }
 
@@ -14,6 +14,7 @@ void loop()
   uint8_t tosend;
   char debugBuf[100];
   char uartBuf[100];
+  int status;
 
   Serial.println("What byte to send:");
   while (!Serial.available())
@@ -24,10 +25,18 @@ void loop()
   Serial.print("Sending: ");
   Serial.write(uartBuf, length);
   Serial.println();
-  mySerial.write(uartBuf, length);
+  for (int i = 0; i < length; i++)
+  {
+    mySerial.sendByte(uartBuf[i]);
+  }
+  mySerial.sendByte('\n');
 
+  for (int i = 0; i < length; i++)
+  {
+
+    uartBuf[i] = mySerial.receiveByte(status);
+  }
   Serial.print("Recieved: ");
-  mySerial.readBytesUntil('\n', uartBuf, 100);
   Serial.write(uartBuf, length);
   Serial.println();
 

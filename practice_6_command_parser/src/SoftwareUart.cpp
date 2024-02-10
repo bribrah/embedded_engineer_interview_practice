@@ -1,33 +1,30 @@
 #include "SoftwareUart.h"
 
-bool simulatedInputBuf[10];
-
-SoftwareUART::SoftwareUART(uint32_t baudRate)
+SoftwareUART::SoftwareUART(uint32_t baudRate, LOGLEVEL logLevel)
 {
     this->baudRate = baudRate;
     waitTime = 1000000. / baudRate;
+    log.setLogLevel(logLevel);
 }
 
 void SoftwareUART::sendByte(uint8_t byte)
 {
     // first bit always low
-    std::cout << "in send byte\n";
+    log.info("in send byte");
     outputBit(0);
-    simulateBitDelay();
     for (int i = 0; i < 8; i++)
     {
         outputBit((byte >> i) & 1);
-        simulateBitDelay();
     }
 
     // stop bit;
     outputBit(1);
-    std::cout << "\ndone with send byte\n";
+    log.info("done with send byte");
 }
 
 uint8_t SoftwareUART::receiveByte(int &status)
 {
-    std::cout << "in recv byte\n";
+    log.info("in recv bytes");
     bool bitRecv;
     inputBufPointer = 0;
     uint8_t recvdByte = 0;
@@ -38,18 +35,15 @@ uint8_t SoftwareUART::receiveByte(int &status)
     {
         // this isnt a start bit!
         std::cerr << "No start bit in recv!\n";
-        inputBufPointer = 0;
         status = -1;
         return 0;
     }
-    simulateBitDelay();
 
     // get the data
     for (int i = 0; i < 8; i++)
     {
         bitRecv = inputBit();
         recvdByte = (recvdByte) | (bitRecv << i);
-        simulateBitDelay();
     }
 
     // make sure stop bit
@@ -57,15 +51,36 @@ uint8_t SoftwareUART::receiveByte(int &status)
     if (!bitRecv)
     {
         // this isnt an end bit!
-        inputBufPointer = 0;
         status = -1;
         std::cerr << "No stop bit in recv!\n";
 
         return 0;
     }
-    std::cout << "\nRecieved: " << (int)recvdByte << std::endl;
-    std::cout << "\ndone with recv byte\n";
+    log.info("Recieved %d", (int)recvdByte);
+    log.info("Done with recv byte");
     return recvdByte;
+}
+
+std::string SoftwareUART::recieveUntil(char delim, int &status)
+{
+    std::string ret;
+
+    status = 0;
+    uint8_t revcd = 0;
+    int length = 0;
+    inputStrPointer = 0;
+
+    // making it so max string length is 100 here, maybe add a param for this
+    while (status == 0 && (char)revcd != delim && length < 100)
+    {
+        setSimulatedInputBuffer(simulatedInputStrBuf[length]);
+        revcd = receiveByte(status);
+        ret += (char)revcd;
+        inputStrPointer++;
+        length++;
+    }
+
+    return ret;
 }
 
 void SoftwareUART::setSimulatedInputBuffer(uint8_t byte)
@@ -82,19 +97,25 @@ void SoftwareUART::setSimulatedInputBuffer(uint8_t byte)
 void SoftwareUART::outputBit(bool bit)
 {
     std::cout << bit;
+    simulateBitDelay();
 }
 
 bool SoftwareUART::inputBit()
 {
     bool bit = simulatedInputBuf[inputBufPointer];
-    std::cout << bit;
+    log.info("%d", bit);
     inputBufPointer++;
+    simulateBitDelay();
     return bit;
-
-} // Simulate reading a bit (RX)
+}
 
 void SoftwareUART::simulateBitDelay()
 {
     std::this_thread::sleep_for(std::chrono::microseconds(static_cast<int>(waitTime)));
     return;
+}
+
+void SoftwareUART::setSimuatedInputString(std::string str)
+{
+    memcpy(simulatedInputStrBuf, str.c_str(), 100);
 }
