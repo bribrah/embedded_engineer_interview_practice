@@ -3,10 +3,24 @@
 #include <vector>
 #include <string>
 #include <util.h>
+#include <CommandParser.h>
+#include "basicCommands.h"
 
-SoftwareUART getUart()
+class CommandParserTest : public testing::Test
 {
-    return SoftwareUART(9600, LOG_INFO);
+protected:
+    CommandParser parser;
+    void SetUp() override
+    {
+        parser.registerNewCommand("hello", helloWorld);
+        parser.registerNewCommand("sum", doSum);
+    }
+};
+
+SoftwareUART
+getUart()
+{
+    return SoftwareUART(9600, LOG_ERROR);
 }
 
 TEST(HelloTest, BasicAssertions)
@@ -88,4 +102,12 @@ TEST(SoftwareUart, recvStringNoDelim)
 
     EXPECT_EQ(status, 0);
     EXPECT_EQ(recvd.size(), 100);
+}
+
+TEST_F(CommandParserTest, HelloWorld)
+{
+    testing::internal::CaptureStdout();
+    parser.parseCommandString("hello");
+    std::string captured = testing::internal::GetCapturedStdout();
+    EXPECT_TRUE(captured.find("HELLO WORLD") != std::string::npos);
 }

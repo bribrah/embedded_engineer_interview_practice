@@ -12,7 +12,7 @@ int CommandParser::registerNewCommand(std::string commandName, CommandPtr comman
         return -1;
     }
 
-    commands.emplace(commandName, commandFunc);
+    commands.emplace(toLower(commandName), commandFunc);
     return 0;
 }
 
@@ -20,13 +20,13 @@ int CommandParser::parseCommandString(std::string fullStr)
 {
     int status;
 
-    std::vector<std::string> split = splitString(fullStr, '\n');
+    std::vector<std::string> split = splitString(fullStr, ' ');
     int length = split.size();
     if (length == 0)
     {
         return -1;
     }
-    std::string command = split[0];
+    std::string command = toLower(split[0]);
 
     if (commands.find(command) != commands.end())
     {

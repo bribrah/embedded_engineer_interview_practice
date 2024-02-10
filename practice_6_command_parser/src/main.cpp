@@ -2,12 +2,7 @@
 #include <string>
 #include "SoftwareUart.h"
 #include "CommandParser.h"
-
-int helloWorld(char *argv[], int argc)
-{
-    std::cout << "HELLO WORLD" << std::endl;
-    return 0;
-}
+#include "basicCommands.h"
 
 int main()
 {
@@ -20,6 +15,7 @@ int main()
     int status;
 
     cmdParser.registerNewCommand("hello", helloWorld);
+    cmdParser.registerNewCommand("sum", doSum);
 
     while (inputFromCLI != "exit")
     {
