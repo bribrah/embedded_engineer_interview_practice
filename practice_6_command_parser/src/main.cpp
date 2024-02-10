@@ -16,7 +16,6 @@ int main()
 
     cmdParser.registerNewCommand("hello", helloWorld);
     cmdParser.registerNewCommand("sum", doSum);
-
     while (inputFromCLI != "exit")
     {
         log.debug("In get command");

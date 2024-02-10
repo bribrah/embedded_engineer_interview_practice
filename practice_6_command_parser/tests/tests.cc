@@ -17,10 +17,21 @@ protected:
     }
 };
 
-SoftwareUART
-getUart()
+SoftwareUART getUart()
 {
     return SoftwareUART(9600, LOG_ERROR);
+}
+
+std::string runCommandAndGetStdout(CommandParser *parser, std::string command)
+{
+    testing::internal::CaptureStdout();
+    parser->parseCommandString(command);
+    return testing::internal::GetCapturedStdout();
+}
+
+static inline bool contains(std::string s, std::string substr)
+{
+    return s.find(substr) != std::string::npos;
 }
 
 TEST(HelloTest, BasicAssertions)
@@ -33,14 +44,11 @@ TEST(HelloTest, BasicAssertions)
 
 TEST(SoftwareUart, Send1Byte)
 {
-    SoftwareUART myUart = getUart();
+    SoftwareUART myUart = SoftwareUART(9600, LOG_DEBUG);
     testing::internal::CaptureStdout();
     myUart.sendByte(1);
     std::string output = testing::internal::GetCapturedStdout();
-    std::vector<std::string> split = splitString(output, '\n');
-
-    EXPECT_GE(split.size(), 1);
-    EXPECT_EQ(split[1], "0100000001");
+    EXPECT_TRUE(contains(output, "0100000001"));
 }
 
 TEST(SoftwareUart, Recv1Byte)
@@ -106,8 +114,24 @@ TEST(SoftwareUart, recvStringNoDelim)
 
 TEST_F(CommandParserTest, HelloWorld)
 {
-    testing::internal::CaptureStdout();
-    parser.parseCommandString("hello");
-    std::string captured = testing::internal::GetCapturedStdout();
+    std::string captured;
+
+    captured = runCommandAndGetStdout(&parser, "hello");
     EXPECT_TRUE(captured.find("HELLO WORLD") != std::string::npos);
+
+    captured = runCommandAndGetStdout(&parser, "hEllO");
+    EXPECT_TRUE(captured.find("HELLO WORLD") != std::string::npos);
+
+    captured = runCommandAndGetStdout(&parser, "HELLO");
+    EXPECT_TRUE(captured.find("HELLO WORLD") != std::string::npos);
+
+    captured = runCommandAndGetStdout(&parser, "              hello            ");
+    EXPECT_TRUE(contains(captured, "HELLO WORLD"));
+}
+
+TEST_F(CommandParserTest, Sum)
+{
+    std::string captured;
+    captured = runCommandAndGetStdout(&parser, "sum 1 2 3 4");
+    EXPECT_TRUE(contains(captured, "10"));
 }

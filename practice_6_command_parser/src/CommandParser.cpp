@@ -1,4 +1,5 @@
 #include "CommandParser.h"
+#include <algorithm>
 
 CommandParser::CommandParser() {}
 
@@ -19,7 +20,8 @@ int CommandParser::registerNewCommand(std::string commandName, CommandPtr comman
 int CommandParser::parseCommandString(std::string fullStr)
 {
     int status;
-
+    fullStr.erase(std::remove(fullStr.begin(), fullStr.end(), '\n'), fullStr.end()); // remove \n
+    trimWhiteSpace(fullStr);                                                         // remove leading and trailing white space
     std::vector<std::string> split = splitString(fullStr, ' ');
     int length = split.size();
     if (length == 0)
@@ -53,7 +55,7 @@ int CommandParser::parseCommandString(std::string fullStr)
     }
     else
     {
-        log.error("Could not find command %s", command.c_str());
+        log.error("Could not find command \"%s\"", command.c_str());
     }
     return 0;
 }
